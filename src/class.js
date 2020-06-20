@@ -213,6 +213,7 @@ export default class ResizableColumns {
 			$leftColumn, $rightColumn, $currentGrip,
 
 			startX: this.getPointerX(event),
+			startTableWidth: this.$table.width(),
 
 			widths: {
 				left: leftWidth,
@@ -256,22 +257,24 @@ export default class ResizableColumns {
 		if(!this.operation) { return; }
 
 		// Determine the delta change between start and new mouse position, as a percentage of the table width
-		let difference = (this.getPointerX(event) - op.startX) / this.$table.width() * 100;
+		let difference = (this.getPointerX(event) - op.startX);
 		if(difference === 0) {
 			return;
 		}
 
 		let leftColumn = op.$leftColumn[0];
 		let rightColumn = op.$rightColumn[0];
-		let widthLeft, widthRight;
+		let widthLeft, widthRight, widthTable;
 
 		if(difference > 0) {
-			widthLeft = this.constrainWidth(op.widths.left + (op.widths.right - op.newWidths.right));
-			widthRight = this.constrainWidth(op.widths.right - difference);
+			widthLeft = this.constrainWidth(op.widths.left + difference);
+			widthRight = this.constrainWidth(op.widths.right);
+			widthTable = this.constrainWidth(op.startTableWidth + difference);
 		}
 		else if(difference < 0) {
 			widthLeft = this.constrainWidth(op.widths.left + difference);
-			widthRight = this.constrainWidth(op.widths.right + (op.widths.left - op.newWidths.left));
+			widthRight = this.constrainWidth(op.widths.right);
+			widthTable = this.constrainWidth(op.startTableWidth + difference);
 		}
 
 		if(leftColumn) {
@@ -280,9 +283,13 @@ export default class ResizableColumns {
 		if(rightColumn) {
 			this.setWidth(rightColumn, widthRight);
 		}
+		if (widthTable) {
+			this.$table.css("width", widthTable + "px");
+		}
 
 		op.newWidths.left = widthLeft;
 		op.newWidths.right = widthRight;
+		op.newWidths.table = widthTable;
 
 		return this.triggerEvent(EVENT_RESIZE, [
 			op.$leftColumn, op.$rightColumn,
@@ -443,7 +450,7 @@ export default class ResizableColumns {
 	@return {Number} Element's width as a float
 	**/
 	parseWidth(element) {
-		return element ? parseFloat(element.style.width.replace('%', '')) : 0;
+		return element ? parseFloat(element.style.width.replace('px', '')) : 0;
 	}
 
 	/**
@@ -457,7 +464,7 @@ export default class ResizableColumns {
 	setWidth(element, width) {
 		width = width.toFixed(2);
 		width = width > 0 ? width : 0;
-		element.style.width = width + '%';
+		element.style.width = width + 'px';
 	}
 
 	/**
