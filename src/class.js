@@ -111,7 +111,7 @@ export default class ResizableColumns {
 	assignPercentageWidths() {
 		this.$tableHeaders.each((_, el) => {
 			let $el = $(el);
-			this.setWidth($el[0], $el.outerWidth() / this.$table.width() * 100);
+			this.setWidth($el[0], $el.outerWidth());
 		});
 	}
 
